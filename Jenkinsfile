@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ZAP_HOME = 'C:\Users\Admin\ZAP' // Cấu hình đúng nơi bạn cài OWASP ZAP
+        ZAP_HOME = 'C:\\Users\\Admin\\ZAP' // Cấu hình đúng nơi bạn cài OWASP ZAP
     }
 
     stages {
