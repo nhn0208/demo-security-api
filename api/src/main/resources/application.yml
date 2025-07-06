@@ -1,0 +1,4 @@
+
+jwt:
+  secret: f9dWvRBBOQVAUBP9wDYJKV988M1X8/yETauF8s+n6HlRzEoo89RqKa1n7FRlHNbO
+  expiration: 3600000
