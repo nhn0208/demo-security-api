@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        ZAP_HOME = '/opt/zap'
+        ZAP_HOME = 'C:\Users\Admin\ZAP' // Cấu hình đúng nơi bạn cài OWASP ZAP
     }
 
     stages {
         stage('Build Project') {
             steps {
                 dir('api') {
-                    sh './mvnw clean package -DskipTests'
+                    bat 'mvnw.cmd clean package -DskipTests'
                 }
             }
         }
@@ -17,7 +17,7 @@ pipeline {
         stage('Start Backend API') {
             steps {
                 dir('api') {
-                    sh 'nohup java -jar target/*.jar &'
+                    bat 'start "" java -jar target\\*.jar'
                 }
                 sleep time: 30, unit: 'SECONDS'
             }
@@ -25,21 +25,27 @@ pipeline {
 
         stage('Generate ZAP Config with JWT') {
             steps {
-                sh 'chmod +x zap/generate-zap-config.sh'
-                sh './zap/generate-zap-config.sh'
+                bat 'zap\\generate-zap-config.bat'
             }
         }
 
         stage('Run ZAP Scan') {
             steps {
-                sh "${ZAP_HOME}/zap.sh -cmd -autorun zap/zap-automation.yaml"
+                bat "\"%ZAP_HOME%\\zap.bat\" -cmd -autorun zap\\zap-automation.yaml"
             }
         }
 
         stage('Archive Report') {
             steps {
-                archiveArtifacts artifacts: 'zap-reports/zap-report.html', fingerprint: true
+                archiveArtifacts artifacts: 'zap-reports\\zap-report.html', fingerprint: true
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Dọn dẹp tiến trình backend...'
+            bat 'taskkill /F /IM java.exe || exit 0'
         }
     }
 }
