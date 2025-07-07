@@ -48,7 +48,7 @@ pipeline {
         	if ($retryCount -eq $maxRetries) {
             	Write-Error "[ERROR] Backend not responding after multiple retries!"
             	exit 1
-        }
+        }'''
     }
 }
 
