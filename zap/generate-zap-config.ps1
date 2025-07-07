@@ -51,7 +51,7 @@ if (-not $token) {
 
 Write-Host "[INFO] Token obtained: $token"
 
-# Tạo file zap-automation.yaml
+# Tạo nội dung YAML
 $yaml = @"
 env:
   contexts:
@@ -62,29 +62,23 @@ env:
         - http://localhost:8080/api/auth/.*
         - http://localhost:8080/api/users/.*
         - http://localhost:8080/api/orders/.*
-      authentication:
-        method:
-          type: httpHeader
-          parameters:
-            header: Authorization
-            value: Bearer $token
-        verification:
-          method: response
-          loggedInRegex: ".*"
-          loggedOutRegex: ".*"
       sessionManagement:
         method: cookie
-      users:
-        - name: clientUser
-          credentials: {}
+      technology:
+        exclude: []
+
   vars: {}
+
+  httpSender:
+    defaultHeaders:
+      - name: Authorization
+        value: Bearer $token
 
 jobs:
   - type: spider
     name: spider-users-orders
     parameters:
       context: jwt-context
-      user: clientUser
       maxDuration: 2
 
   - type: passiveScan-wait
@@ -94,7 +88,6 @@ jobs:
     name: active-users-orders
     parameters:
       context: jwt-context
-      user: clientUser
       policy: Default Policy
       maxRuleDurationInMins: 2
 
@@ -106,6 +99,7 @@ jobs:
       reportFile: zap-report.html
 "@
 
+# Ghi file
 $yaml | Set-Content -Path "zap\zap-automation.yaml" -Encoding UTF8
 
 Write-Host "[INFO] File zap-automation.yaml is created successfully"
