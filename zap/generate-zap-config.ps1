@@ -57,7 +57,6 @@ env:
   contexts:
     - name: jwt-context
       urls:
-        - http://localhost:8080
       includePaths:
         - http://localhost:8080/api/auth/.*
         - http://localhost:8080/api/users/.*
