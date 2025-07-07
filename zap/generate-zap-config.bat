@@ -1,38 +1,52 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo Waiting for backend to be ready...
+REM === Kiểm tra backend đã khởi động ===
+echo [INFO] Đang chờ backend sẵn sàng...
 
-:wait_loop
-powershell -Command "try { iwr http://localhost:8080/api/auth/login -UseBasicParsing -TimeoutSec 3 } catch { exit 1 }"
-IF %ERRORLEVEL% NEQ 0 (
-    timeout /T 3 >nul
-    goto wait_loop
+set RETRIES=10
+set WAIT=5
+set /a COUNT=0
+:WAIT_LOOP
+curl -s http://localhost:8080/actuator/health >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [INFO] Backend chưa sẵn sàng... chờ %WAIT% giây
+    timeout /T %WAIT% /NOBREAK >nul
+    set /a COUNT+=1
+    if !COUNT! LSS %RETRIES% (
+        goto WAIT_LOOP
+    ) else (
+        echo [ERROR] Backend không phản hồi sau %RETRIES% lần thử!
+        exit /b 1
+    )
 )
 
-echo Backend is ready!
+echo [INFO] Backend đã sẵn sàng.
 
-REM --- Gửi login request và lưu token ---
-powershell -Command ^
-    "$response = iwr -Uri http://localhost:8080/api/auth/login -Method Post -Body '{\"username\":\"client\",\"password\":\"client123\"}' -ContentType 'application/json';" ^
-    "$token = ($response.Content | ConvertFrom-Json).token;" ^
-    "Set-Content -Path zap\\jwt-token.txt -Value $token"
+REM === Gọi API đăng nhập để lấy token ===
+echo [INFO] Đang lấy JWT token...
 
-REM --- Đọc token vào biến môi trường ---
-set /p TOKEN=<zap\jwt-token.txt
-
-echo JWT Token is: %TOKEN%
-
-REM --- Tạo file zap-automation.yaml ---
-> zap\zap-automation.yaml (
-    echo parameters:
-    echo   - name: target
-    echo     value: 'http://localhost:8080'
-    echo   - name: JWT
-    echo     value: '%TOKEN%'
+for /f "usebackq tokens=*" %%i in (`curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"client\",\"password\":\"client123\"}" ^| powershell -Command "$input | ConvertFrom-Json | Select -ExpandProperty token"`) do (
+    set TOKEN=%%i
 )
 
-REM --- Ghép phần scan còn lại (static YAML template) ---
-type zap\static-config-part.yaml >> zap\zap-automation.yaml
+if "%TOKEN%"=="" (
+    echo [ERROR] Không lấy được JWT token.
+    exit /b 1
+)
 
-echo zap-automation.yaml đã được tạo thành công!
+echo [INFO] Token lấy được: %TOKEN%
+
+REM === Tạo zap-automation.yaml bằng cách nối file cấu hình tĩnh và token ===
+(
+    type zap\static-config-part.yaml
+    echo authentication:
+    echo   method:
+    echo     type: httpHeader
+    echo     parameters:
+    echo       header: Authorization
+    echo       value: Bearer %TOKEN%
+) > zap\zap-automation.yaml
+
+echo [INFO] File zap-automation.yaml đã được tạo xong.
+exit /b 0
