@@ -25,7 +25,7 @@ pipeline {
 
         stage('Generate ZAP Config with JWT') {
             steps {
-                bat 'zap\\generate-zap-config.ps1'
+                powershell 'zap\\generate-zap-config.ps1'
             }
         }
 
