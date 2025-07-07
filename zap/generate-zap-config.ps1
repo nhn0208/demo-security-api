@@ -1,4 +1,4 @@
-Write-Host "[INFO] Checking backend readiness..."
+Write-Host "[INFO] Checking backend ..."
 
 $maxRetries = 10
 $waitSeconds = 5
@@ -30,7 +30,7 @@ Write-Host "[INFO] Logging in to get JWT token..."
 $loginBody = @{
     username = "client"
     password = "client123"
-} | ConvertTo-Json -Depth 3
+} | ConvertTo-Json
 
 try {
     $response = Invoke-RestMethod -Uri "http://localhost:8080/api/auth/login" `
@@ -51,29 +51,61 @@ if (-not $token) {
 
 Write-Host "[INFO] Token obtained: $token"
 
-# Read static YAML part
-$staticPartPath = "zap\static-config-part.yaml"
-$finalYamlPath = "zap\zap-automation.yaml"
+# Tạo file zap-automation.yaml
+$yaml = @"
+env:
+  contexts:
+    - name: jwt-context
+      urls:
+        - http://localhost:8080
+      includePaths:
+        - http://localhost:8080/api/auth/.*
+        - http://localhost:8080/api/users/.*
+        - http://localhost:8080/api/orders/.*
+      authentication:
+        method:
+          type: httpHeader
+          parameters:
+            header: Authorization
+            value: Bearer $token
+        verification:
+          method: response
+          loggedInRegex: ".*"
+          loggedOutRegex: ".*"
+      sessionManagement:
+        method: cookie
+      users:
+        - name: clientUser
+          credentials: {}
+  vars: {}
 
-if (-Not (Test-Path $staticPartPath)) {
-    Write-Error "[ERROR] static-config-part.yaml not found!"
-    exit 1
-}
-
-$staticPart = Get-Content $staticPartPath -Raw
-
-# Create dynamic authentication block
-$authPart = @"
-authentication:
-  method:
-    type: httpHeader
+jobs:
+  - type: spider
+    name: spider-users-orders
     parameters:
-      header: Authorization
-      value: Bearer $token
+      context: jwt-context
+      user: clientUser
+      maxDuration: 2
+
+  - type: passiveScan-wait
+    name: passive-scan
+
+  - type: activeScan
+    name: active-users-orders
+    parameters:
+      context: jwt-context
+      user: clientUser
+      policy: Default Policy
+      maxRuleDurationInMins: 2
+
+  - type: report
+    name: generate-html-report
+    parameters:
+      template: traditional-html
+      reportDir: zap-reports
+      reportFile: zap-report.html
 "@
 
-# Combine and save to final file
-$combined = $staticPart + "`r`n" + $authPart
-$combined | Set-Content $finalYamlPath -Encoding UTF8
+$yaml | Set-Content -Path "zap\zap-automation.yaml" -Encoding UTF8
 
-Write-Host "[INFO] File zap-automation.yaml has been created successfully at: $finalYamlPath"
+Write-Host "[INFO] File zap-automation.yaml is created successfully"
