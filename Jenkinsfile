@@ -23,6 +23,36 @@ pipeline {
             }
         }
 
+	stage('Check Backend is Ready') {
+    	steps {
+        	powershell '''
+        	$maxRetries = 10
+        	$waitSeconds = 5
+        	$url = "http://localhost:8080/actuator/health"
+        	$retryCount = 0
+
+        	do {
+            	try {
+                	$res = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 3
+                	if ($res.StatusCode -eq 200) {
+                    	Write-Host "[INFO] Backend is ready."
+                    	break
+                	}
+            	} catch {
+               	 	Write-Host "[INFO] Backend not ready... retry in $waitSeconds seconds"
+            	}
+            	Start-Sleep -Seconds $waitSeconds
+            	$retryCount++
+        	} while ($retryCount -lt $maxRetries)
+
+        	if ($retryCount -eq $maxRetries) {
+            	Write-Error "[ERROR] Backend not responding after multiple retries!"
+            	exit 1
+        }
+    }
+}
+
+
         stage('Generate ZAP Config with JWT') {
             steps {
                 powershell 'zap\\generate-zap-config.ps1'
