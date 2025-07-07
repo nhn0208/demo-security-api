@@ -1,26 +1,24 @@
 env:
-  vars:
-    API_BASE: ${target}
-    JWT_TOKEN: ${JWT}
-
   contexts:
-    - name: jwt-context
+    - name: DemoAPI
       urls:
-        - \${API_BASE}
+        - http://localhost:8080
       includePaths:
-        - '\${API_BASE}/api/users/.*'
-        - '\${API_BASE}/api/orders/.*'
+        - http://localhost:8080/api/auth/.*
+	- http://localhost:8080/api/users/ 
+      excludePaths: []
       authentication:
-        method: httpHeader
-        parameters:
-          headerName: Authorization
-          headerValue: 'Bearer \${JWT_TOKEN}'
+        method:
+          type: manual
+        parameters: {}
       sessionManagement:
-        method: httpAuthSession
+        method: cookie
+      technology:
+        exclude: []
       users:
-        - name: jwt-user
+        - name: clientUser
           credentials: {}
-          parameters: {}
+  vars: {}
 
 jobs:
   - type: spider
