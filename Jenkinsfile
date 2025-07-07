@@ -28,7 +28,7 @@ pipeline {
         	powershell '''
         	$maxRetries = 10
         	$waitSeconds = 5
-        	$url = "http://localhost:8080/actuator/health"
+        	$url = "http://localhost:8080/v1/api-docs"
         	$retryCount = 0
 
         	do {

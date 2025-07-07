@@ -7,7 +7,7 @@ $backendReady = $false
 
 do {
     try {
-        $res = Invoke-WebRequest -Uri "http://localhost:8080/actuator/health" -UseBasicParsing -TimeoutSec 5
+        $res = Invoke-WebRequest -Uri "http://localhost:8080/v1/api-docs" -UseBasicParsing -TimeoutSec 5
         if ($res.StatusCode -eq 200) {
             Write-Host "[INFO] Backend is ready!"
             $backendReady = $true
