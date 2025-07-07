@@ -1,46 +1,68 @@
-Write-Host "[INFO] Đang kiểm tra backend có hoạt động chưa..."
+Write-Host "[INFO] Checking backend readiness..."
 
 $maxRetries = 10
 $waitSeconds = 5
 $retryCount = 0
+$backendReady = $false
 
 do {
     try {
-        $res = Invoke-WebRequest -Uri http://localhost:8080/actuator/health -UseBasicParsing -TimeoutSec 3
+        $res = Invoke-WebRequest -Uri "http://localhost:8080/actuator/health" -UseBasicParsing -TimeoutSec 5
         if ($res.StatusCode -eq 200) {
-            Write-Host "[INFO] Backend đã sẵn sàng."
+            Write-Host "[INFO] Backend is ready!"
+            $backendReady = $true
             break
         }
     } catch {
-        Write-Host "[INFO] Backend chưa sẵn sàng... chờ $waitSeconds giây"
+        Write-Host "[INFO] Backend not ready... retrying in $waitSeconds seconds."
     }
     Start-Sleep -Seconds $waitSeconds
     $retryCount++
 } while ($retryCount -lt $maxRetries)
 
-if ($retryCount -eq $maxRetries) {
-    Write-Error "[ERROR] Không thể kết nối đến backend!"
+if (-not $backendReady) {
+    Write-Error "[ERROR] Could not connect to backend after $maxRetries attempts."
     exit 1
 }
 
-Write-Host "[INFO] Đang lấy JWT token..."
+Write-Host "[INFO] Logging in to get JWT token..."
 
 $loginBody = @{
     username = "client"
     password = "client123"
-} | ConvertTo-Json
+} | ConvertTo-Json -Depth 3
 
-$response = Invoke-RestMethod -Uri http://localhost:8080/api/auth/login -Method POST -Body $loginBody -ContentType "application/json"
-$token = $response.token
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:8080/api/auth/login" `
+        -Method POST `
+        -Body $loginBody `
+        -ContentType "application/json"
 
-if (-not $token) {
-    Write-Error "[ERROR] Không lấy được token!"
+    $token = $response.token
+} catch {
+    Write-Error "[ERROR] Login failed: $_"
     exit 1
 }
 
-Write-Host "[INFO] Token lấy được: $token"
+if (-not $token) {
+    Write-Error "[ERROR] Token not received!"
+    exit 1
+}
 
-$staticPart = Get-Content "zap\static-config-part.yaml"
+Write-Host "[INFO] Token obtained: $token"
+
+# Read static YAML part
+$staticPartPath = "zap\static-config-part.yaml"
+$finalYamlPath = "zap\zap-automation.yaml"
+
+if (-Not (Test-Path $staticPartPath)) {
+    Write-Error "[ERROR] static-config-part.yaml not found!"
+    exit 1
+}
+
+$staticPart = Get-Content $staticPartPath -Raw
+
+# Create dynamic authentication block
 $authPart = @"
 authentication:
   method:
@@ -50,7 +72,8 @@ authentication:
       value: Bearer $token
 "@
 
-$combined = $staticPart + "`n" + $authPart
-$combined | Set-Content "zap\zap-automation.yaml"
+# Combine and save to final file
+$combined = $staticPart + "`r`n" + $authPart
+$combined | Set-Content $finalYamlPath -Encoding UTF8
 
-Write-Host "[INFO] File zap-automation.yaml đã được tạo thành công."
+Write-Host "[INFO] File zap-automation.yaml has been created successfully at: $finalYamlPath"
