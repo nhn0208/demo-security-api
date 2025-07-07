@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 REM --- Wait for backend ---
 echo Waiting for backend to be ready...
 :loop
-curl -s http://localhost:8080/api/auth/login > nul
+curl -s http://localhost:8080/api/auth/login
 IF %ERRORLEVEL% NEQ 0 (
     timeout /T 3 > nul
     goto loop
