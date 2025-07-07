@@ -28,7 +28,7 @@ pipeline {
 
         stage('Run ZAP Scan') {
     steps {
-        bat 'java -Xmx512m -jar "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap-2.16.1.jar" -cmd -autorun zap\\zap-automation.yaml'
+        bat 'java -Xmx512m -jar "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap-2.16.1.jar" -cmd -port 8095 -autorun zap\\zap-automation.yaml'
     }
 }
 
