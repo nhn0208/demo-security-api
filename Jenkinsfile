@@ -27,10 +27,11 @@ pipeline {
         }
 
         stage('Run ZAP Scan') {
-            steps {
-                bat "\"%ZAP_HOME%\\zap.bat\" -cmd -autorun zap\\zap-automation.yaml"
-            }
-        }
+    steps {
+        bat 'java -Xmx512m -jar "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap-2.16.1.jar" -cmd -autorun zap\\zap-automation.yaml'
+    }
+}
+
 
         stage('Archive Report') {
             steps {
@@ -41,7 +42,7 @@ pipeline {
 
     post {
         always {
-            echo 'Dọn dẹp tiến trình backend...'
+            echo 'Clear backend...'
             bat 'taskkill /F /IM java.exe || exit 0'
         }
     }
