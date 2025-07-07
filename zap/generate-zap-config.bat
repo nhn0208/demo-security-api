@@ -2,7 +2,7 @@
 
 JWT=$(curl -s -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"client","password":"client123w"}' | jq -r '.token')
+  -d '{"username":"client","password":"client123"}' | jq -r '.token')
 echo "JWT token lấy được: $JWT"
 
 cat <<EOF > zap/zap-automation.yaml
