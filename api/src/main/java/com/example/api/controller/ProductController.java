@@ -14,7 +14,7 @@ public class ProductController {
 
     private final ProductRepository productRepository;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Product> getAll() {
         return productRepository.findAll();
     }

@@ -27,7 +27,7 @@ public class OrderController {
         /*
         //Kiểm tra vai trò là CLIENT - Chỉ CLIENT mới được đặt hàng
         boolean isClient = auth.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_CLIENT"));
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("CLIENT"));
         if (!isClient) {
             return ResponseEntity.status(403).body("Chỉ người dùng CLIENT mới có quyền đặt hàng!");
         }

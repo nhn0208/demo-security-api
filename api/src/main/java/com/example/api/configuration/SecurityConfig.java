@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     private final String[] PUBLIC_ENDPOINTS = {
-            "/",
+            "/api/products/**",
             "/api/auth/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

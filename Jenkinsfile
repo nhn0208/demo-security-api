@@ -18,28 +18,15 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
-
-
-        stage('Generate ZAP Config with JWT') {
-            steps {
-                powershell 'zap\\generate-zap-config.ps1'
-            }
-        }
-
-        stage('Run ZAP Scan') {
+stage('Scan BOLA (Manual Script)') {
     steps {
-        bat 'java -Xmx512m -jar "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap-2.16.1.jar" -cmd -port 8095 -autorun zap\\zap-automation.yaml'
+        powershell 'zap\\test-BOLA-vul.ps1'
+        archiveArtifacts artifacts: 'zap\\zap-reports\\zap-bola-log.txt', fingerprint: true
     }
 }
 
 
-        stage('Archive Report') {
-            steps {
-                archiveArtifacts artifacts: 'zap-reports\\zap-report.html', fingerprint: true
-            }
-        }
-    }
-
+        
     post {
         always {
             echo 'Clear backend...'
