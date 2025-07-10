@@ -18,15 +18,15 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
-stage('Scan BOLA (Manual Script)') {
-    steps {
-        powershell 'zap\\test-BOLA-vul.ps1'
-        archiveArtifacts artifacts: 'zap\\zap-reports\\zap-bola-log.txt', fingerprint: true
+
+        stage('Scan BOLA (Manual Script)') {
+            steps {
+                powershell 'zap\\test-BOLA-vul.ps1'
+                archiveArtifacts artifacts: 'zap\\zap-reports\\zap-bola-log.txt', fingerprint: true
+            }
+        }
     }
-}
 
-
-        
     post {
         always {
             echo 'Clear backend...'
