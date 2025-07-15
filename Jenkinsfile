@@ -12,10 +12,12 @@ pipeline {
 
         stage('ZAP Scan (BOLA)') {
             steps {
-                bat """
-                    echo Running ZAP automation scan...
-                    "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap.bat" -cmd -autorun "zap\\zap-automation.yaml"
-                """
+                dir('C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1') {
+                    bat """
+                        echo Running ZAP automation scan...
+                        zap.bat -cmd -autorun "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\security-ci\\zap\\zap-automation.yaml"
+                    """
+                }
             }
         }
 
