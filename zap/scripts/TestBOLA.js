@@ -16,7 +16,7 @@ var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
 // === Thông tin log ===
-var logFile = "C:/Xanh/tttn/demo/zap/zap-reports/report.txt";
+var logFile = "zap/zap-reports/zap-bola-log.txt";
 var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -84,6 +84,7 @@ function sendingRequest(msg, initiator, helper) {
             }
 
             writer.flush();
+            writer.close();
         }
 }
 
