@@ -54,16 +54,21 @@ pipeline {
                         echo "Log file not found: ${BOLA_LOG}"
                     }
                 }
+            }
+        }
 
+	stage('Publish ZAP Report') {
+            steps {
                 publishHTML(target: [
                     reportDir: "zap\\zap-reports",
                     reportFiles: "zap-bola-log.txt",
-                    reportName: 'ZAP BOLA Log',
+                    reportName: 'ZAP BOLA Security Report',
                     keepAll: true,
                     alwaysLinkToLastBuild: true
                 ])
             }
         }
+
     }
 
     post {
