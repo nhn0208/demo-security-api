@@ -1,4 +1,11 @@
 env:
+  contexts:
+    - name: "BOLA Test Context"
+      urls:
+        - "http://localhost:8080"
+      includePaths:
+        - "http://localhost:8080/api/users/.*"
+
   vars:
     baseUrl: "http://localhost:8080"
     authToken: "Bearer {{token}}"
@@ -6,6 +13,7 @@ env:
 jobs:
   - type: requestor
     parameters:
+      context: "BOLA Test Context"
       requests:
         - url: "{{baseUrl}}/api/users/1"
           method: GET
@@ -19,10 +27,19 @@ jobs:
           method: GET
           headers:
             - "Authorization: {{authToken}}"
+        - url: "{{baseUrl}}/api/users/4"
+          method: GET
+          headers:
+            - "Authorization: {{authToken}}"
+        - url: "{{baseUrl}}/api/users/5"
+          method: GET
+          headers:
+            - "Authorization: {{authToken}}"
 
   - type: activeScan
     parameters:
-      url: "{{baseUrl}}"
+      context: "BOLA Test Context"
+      policy: Default Policy
 
   - type: report
     parameters:
