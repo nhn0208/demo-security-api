@@ -1,0 +1,64 @@
+env:
+  contexts:
+    - name: "BOLA Test Context"
+      urls:
+        - "http://localhost:8080"
+      includePaths:
+        - "http://localhost:8080/api/users/.*"
+      authentication:
+        method: jsonBasedAuthentication
+        parameters:
+          loginUrl: "http://localhost:8080/api/auth/login"
+          loginRequestBody: '{"username":"client","password":"client123"}'
+        verification:
+          method: response
+          loggedInRegex: ".*token.*"
+      sessionManagement:
+        method: cookie
+      users:
+        - name: clientUser
+          credentials:
+            username: client
+            password: client123
+          forced: true
+
+jobs:
+  - type: passiveScan
+
+  - type: requestor
+    parameters:
+      user: "clientUser"
+      context: "BOLA Test Context"
+      requests:
+        - url: "http://localhost:8080/api/users/1"
+          method: GET
+        - url: "http://localhost:8080/api/users/2"
+          method: GET
+        - url: "http://localhost:8080/api/users/3"
+          method: GET
+        - url: "http://localhost:8080/api/users/4"
+          method: GET
+        - url: "http://localhost:8080/api/users/5"
+          method: GET
+        - url: "http://localhost:8080/api/users/6"
+          method: GET
+        - url: "http://localhost:8080/api/users/7"
+          method: GET
+        - url: "http://localhost:8080/api/users/8"
+          method: GET
+        - url: "http://localhost:8080/api/users/9"
+          method: GET
+        - url: "http://localhost:8080/api/users/10"
+          method: GET
+
+  - type: activeScan
+    parameters:
+      context: "BOLA Test Context"
+      user: "clientUser"
+      policy: Default Policy
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: zap/zap-reports
+      reportFile: zap-bola-report.html

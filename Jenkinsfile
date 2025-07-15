@@ -10,27 +10,31 @@ pipeline {
             }
         }
 
-        stage('Start Backend API') {
+        stage('ZAP Scan (BOLA)') {
             steps {
-                dir('api') {
-                    powershell 'Start-Process -FilePath "java" -ArgumentList "-jar target/api-0.0.1-SNAPSHOT.jar"'
-                }
-                sleep time: 10, unit: 'SECONDS'
+                bat """
+                    echo Running ZAP automation scan...
+                    "C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1\\zap.bat" -cmd -autorun "zap\\zap-automation.yaml"
+                """
             }
         }
 
-        stage('Scan BOLA (Manual Script)') {
+        stage('Publish ZAP Report') {
             steps {
-                powershell 'zap\\test-BOLA-vul.ps1'
-                archiveArtifacts artifacts: 'zap\\zap-reports\\zap-bola-log.txt', fingerprint: true
+                publishHTML(target: [
+                    reportDir: "zap\\zap-reports",
+                    reportFiles: "zap-bola-report.html",
+                    reportName: 'ZAP BOLA Security Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
             }
         }
     }
 
     post {
         always {
-            echo 'Clear backend...'
-            bat 'taskkill /F /IM java.exe || exit 0'
+            archiveArtifacts artifacts: "zap\\zap-reports\\zap-bola-report.html", fingerprint: true
         }
     }
 }
