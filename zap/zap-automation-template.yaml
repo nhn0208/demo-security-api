@@ -1,17 +1,10 @@
 env:
-  contexts:
-    - name: "BOLA Test Context"
-      urls:
-        - "http://localhost:8080"
-      includePaths:
-        - "http://localhost:8080/api/users/.*"
-
   vars:
     baseUrl: "http://localhost:8080"
     authToken: "Bearer {{token}}"
 
 jobs:
-  - type: requestor
+  - type: request
     parameters:
       context: "BOLA Test Context"
       requests:
@@ -44,5 +37,5 @@ jobs:
   - type: report
     parameters:
       template: traditional-html
-      reportDir: zap/zap-reports
+      reportDir: zap-reports
       reportFile: zap-bola-report.html
