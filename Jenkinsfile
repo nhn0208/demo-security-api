@@ -3,10 +3,8 @@ pipeline {
 
     environment {
         ZAP_HOME = 'C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1'
-        ZAP_TEMPLATE = 'zap\\zap-automation-template.yaml'
-        ZAP_CONFIG   = 'zap\\zap-automation.yaml'
-        ZAP_REPORT   = 'zap\\zap-reports\\zap-bola-report.html'
-        BACKEND_JAR  = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
+        BACKEND_JAR = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
+        BOLA_LOG = 'zap\\zap-reports\\zap-bola-log.txt'
     }
 
     stages {
@@ -27,42 +25,40 @@ pipeline {
             }
         }
 
-        stage('Generate JWT Token & Prepare YAML') {
+        stage('Prepare Report Folder') {
             steps {
-                script {
-                    def loginPayload = '{"username":"client","password":"client123"}'
-                    def token = powershell(script: """
-                        \$body = '${loginPayload}'
-                        \$response = Invoke-RestMethod -Uri http://localhost:8080/api/auth/login -Method Post -Body \$body -ContentType 'application/json'
-                        \$response.token
-                    """, returnStdout: true).trim()
-
-                    echo "JWT Token: ${token}"
-
-                    def template = readFile("${ZAP_TEMPLATE}")
-                    def filledYaml = template.replace('{{token}}', token)
-                    writeFile file: "${ZAP_CONFIG}", text: filledYaml
-                }
+                bat 'if not exist "zap\\zap-reports" mkdir "zap\\zap-reports"'
             }
         }
 
-        stage('ZAP Scan (BOLA)') {
+        stage('Run ZAP with BOLA Script') {
             steps {
-                dir("${ZAP_HOME}") {
+                dir("${env.ZAP_HOME}") {
                     bat """
-                        echo Running ZAP automation scan with token...
-                        zap.bat -cmd -autorun "${env.WORKSPACE}\\${ZAP_CONFIG}"
+                        echo Running ZAP with TestBOLA.js script...
+                        zap.bat -cmd -quickurl http://localhost:8080
                     """
                 }
             }
         }
 
-        stage('Publish ZAP Report') {
+        stage('Publish Log Report') {
             steps {
+                script {
+                    def exists = fileExists("${BOLA_LOG}")
+                    if (exists) {
+                        echo "ZAP log found:"
+                        def content = readFile("${BOLA_LOG}")
+                        echo content
+                    } else {
+                        echo "Log file not found: ${BOLA_LOG}"
+                    }
+                }
+
                 publishHTML(target: [
                     reportDir: "zap\\zap-reports",
-                    reportFiles: "zap-bola-report.html",
-                    reportName: 'ZAP BOLA Security Report',
+                    reportFiles: "zap-bola-log.txt",
+                    reportName: 'ZAP BOLA Log',
                     keepAll: true,
                     alwaysLinkToLastBuild: true
                 ])
@@ -72,7 +68,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: "${ZAP_REPORT}", fingerprint: true
+            archiveArtifacts artifacts: "${BOLA_LOG}", fingerprint: true
         }
     }
 }
