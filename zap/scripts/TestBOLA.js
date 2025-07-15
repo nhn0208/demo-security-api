@@ -8,28 +8,21 @@ var BufferedWriter = Java.type("java.io.BufferedWriter");
 var SimpleDateFormat = Java.type("java.text.SimpleDateFormat");
 var Date = Java.type("java.util.Date");
 
-// === Khai báo biến toàn cục ===
-var CURRENT_ID = 2;
+// === Cấu hình ===
 var TARGET_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 var loginUrl = "http://localhost:8080/api/auth/login";
 var loginBody = '{"username":"client","password":"client123"}';
-var token = null;
-
-// === Thông tin log ===
-var logFile = "zap/zap-reports/zap-bola-log.txt";
-var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-// === Khởi tạo log file ===
-function initLog() {
-    writer = new BufferedWriter(new FileWriter(logFile, true));
-    var now = formatter.format(new Date());
-    writer.write("\n=== BOLA Scan Log - " + now + " ===\n");
-    writer.flush();
-}
+// === Log file: đúng workspace Jenkins
+var logFile = Java.type("java.lang.System").getProperty("user.dir") + "/zap/zap-reports/zap-bola-log.txt";
 
-// === Gọi API để lấy token JWT ===
-function getJwtToken() {
+// === Hàm chính ===
+function init() {
+    var writer = new BufferedWriter(new FileWriter(logFile, true));
+    writer.write("\n=== BOLA Scan Log - " + formatter.format(new Date()) + " ===\n");
+
+    // Gọi login API để lấy token
     var loginMsg = new HttpMessage(new URI(loginUrl, false));
     loginMsg.getRequestHeader().setMethod("POST");
     loginMsg.getRequestHeader().setHeader(HttpHeader.CONTENT_TYPE, "application/json");
@@ -41,53 +34,32 @@ function getJwtToken() {
 
     var response = loginMsg.getResponseBody().toString();
     var parsed = JSON.parse(response);
-    return parsed.token;
-}
+    var token = parsed.token;
 
-// === Gửi các request giả mạo để kiểm tra BOLA ===
-function sendingRequest(msg, initiator, helper) {
-
-    if (writer === null) {
-        initLog();
+    if (!token) {
+        writer.write("[ERROR] Could not get JWT token\n");
+        writer.flush(); writer.close();
+        return;
     }
-    if (token == null) {
-        token = getJwtToken();
-        if (!token) {
-            var errTime = formatter.format(new Date());
-            var errLog = "[" + errTime + "] [ERROR] Could not get token";
-            print(errLog);
-            writer.write(errLog + "\n");
-            writer.flush();
-            return;
+
+    // Gửi 10 request với token
+    for (var i = 0; i < TARGET_IDS.length; i++) {
+        var id = TARGET_IDS[i];
+        var url = "http://localhost:8080/api/users/" + id;
+        var req = new HttpMessage(new URI(url, false));
+        req.getRequestHeader().setMethod("GET");
+        req.getRequestHeader().setHeader("Authorization", "Bearer " + token);
+
+        sender.sendAndReceive(req, true);
+        var status = req.getResponseHeader().getStatusCode();
+        var log = "[" + formatter.format(new Date()) + "] [*] Tested " + url + " => Status: " + status;
+        writer.write(log + "\n");
+
+        if (status === 200) {
+            writer.write("[!!] BOLA vulnerability found at: " + url + "\n");
         }
     }
-    for (var i = 1; i <= 10; i++) {
-            var targetUri = "http://localhost:8080/api/users/" + i;
-            var forgedMsg = new HttpMessage(new URI(targetUri, false));
-            forgedMsg.getRequestHeader().setMethod("GET");
-            forgedMsg.getRequestHeader().setHeader("Authorization", "Bearer " + token);
 
-            var sender = new HttpSender(HttpSender.MANUAL_REQUEST_INITIATOR);
-            sender.sendAndReceive(forgedMsg, true);
-
-            var status = forgedMsg.getResponseHeader().getStatusCode();
-            var timestamp = formatter.format(new Date());
-            var log = "[" + timestamp + "] [*] Tested " + targetUri + " => Status: " + status;
-
-            print(log);
-            writer.write(log + "\n");
-
-            if (status === 200) {
-                var vuln = "[" + timestamp + "] [!!] BOLA vulnerability found at: " + targetUri;
-                print(vuln);
-                writer.write(vuln + "\n");
-            }
-
-            writer.flush();
-            writer.close();
-        }
-}
-
-function responseReceived(msg, initiator, helper) {
-    // Không xử lý phản hồi gốc
+    writer.flush();
+    writer.close();
 }
