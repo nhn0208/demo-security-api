@@ -25,18 +25,13 @@ pipeline {
             }
         }
 
-        stage('Prepare Report Folder') {
-            steps {
-                bat 'if not exist "zap\\zap-reports" mkdir "zap\\zap-reports"'
-            }
-        }
 
         stage('Run ZAP with BOLA Script') {
             steps {
                 dir("${env.ZAP_HOME}") {
                     bat """
                         echo Running ZAP with TestBOLA.js script...
-                        zap.bat -cmd -quickurl http://localhost:8080
+                        zap.bat -cmd -quickurl http://localhost:8080 -config scripts.scriptsAutoLoad=true -addoninstall scripts
                     """
                 }
             }
