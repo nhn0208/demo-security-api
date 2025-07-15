@@ -1,0 +1,31 @@
+env:
+  vars:
+    baseUrl: "http://localhost:8080"
+    authToken: "Bearer {{token}}"
+
+jobs:
+  - type: requestor
+    parameters:
+      requests:
+        - url: "{{baseUrl}}/api/users/1"
+          method: GET
+          headers:
+            - "Authorization: {{authToken}}"
+        - url: "{{baseUrl}}/api/users/2"
+          method: GET
+          headers:
+            - "Authorization: {{authToken}}"
+        - url: "{{baseUrl}}/api/users/3"
+          method: GET
+          headers:
+            - "Authorization: {{authToken}}"
+
+  - type: activeScan
+    parameters:
+      url: "{{baseUrl}}"
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: zap/zap-reports
+      reportFile: zap-bola-report.html
