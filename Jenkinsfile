@@ -31,7 +31,7 @@ pipeline {
                 dir("${env.ZAP_HOME}") {
                     bat """
                         echo Running ZAP with TestBOLA.js script...
-                        zap.bat -cmd -autorun zap\\zap-autorun.yaml -addoninstall scripts -config scripts.scriptsAutoLoad=true
+                        zap.bat -cmd -autorun zap-autorun.yaml -addoninstall scripts -config scripts.scriptsAutoLoad=true
                     """
                 }
             }
