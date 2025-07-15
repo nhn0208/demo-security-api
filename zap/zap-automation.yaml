@@ -6,13 +6,11 @@ env:
       includePaths:
         - "http://localhost:8080/api/users/.*"
       authentication:
-        method: jsonBasedAuthentication
+        method: formBasedAuthentication
         parameters:
-          loginUrl: "http://localhost:8080/api/auth/login"
-          loginRequestBody: '{"username":"client","password":"client123"}'
-        verification:
-          method: response
-          loggedInRegex: ".*token.*"
+          loginPageUrl: "http://localhost:8080/login"
+          loginRequestUrl: "http://localhost:8080/api/auth/login"
+          loginRequestBody: "username=client&password=client123"
       sessionManagement:
         method: cookie
       users:
@@ -20,41 +18,40 @@ env:
           credentials:
             username: client
             password: client123
-          forced: true
+
+  vars:
+    baseUrl: "http://localhost:8080"
 
 jobs:
-  - type: passiveScan
-
   - type: requestor
     parameters:
-      user: "clientUser"
-      context: "BOLA Test Context"
+      user: clientUser
       requests:
-        - url: "http://localhost:8080/api/users/1"
+        - url: "{{baseUrl}}/api/users/1"
           method: GET
-        - url: "http://localhost:8080/api/users/2"
+        - url: "{{baseUrl}}/api/users/2"
           method: GET
-        - url: "http://localhost:8080/api/users/3"
+        - url: "{{baseUrl}}/api/users/3"
           method: GET
-        - url: "http://localhost:8080/api/users/4"
+        - url: "{{baseUrl}}/api/users/4"
           method: GET
-        - url: "http://localhost:8080/api/users/5"
+        - url: "{{baseUrl}}/api/users/5"
           method: GET
-        - url: "http://localhost:8080/api/users/6"
+        - url: "{{baseUrl}}/api/users/6"
           method: GET
-        - url: "http://localhost:8080/api/users/7"
+        - url: "{{baseUrl}}/api/users/7"
           method: GET
-        - url: "http://localhost:8080/api/users/8"
+        - url: "{{baseUrl}}/api/users/8"
           method: GET
-        - url: "http://localhost:8080/api/users/9"
+        - url: "{{baseUrl}}/api/users/9"
           method: GET
-        - url: "http://localhost:8080/api/users/10"
+        - url: "{{baseUrl}}/api/users/10"
           method: GET
 
   - type: activeScan
     parameters:
       context: "BOLA Test Context"
-      user: "clientUser"
+      user: clientUser
       policy: Default Policy
 
   - type: report
