@@ -16,7 +16,7 @@ var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
 // === Thông tin log ===
-var logFile = "zap/zap-reports/zap-bola-log.txt";
+var logFile = "C:/Xanh/tttn/demo/zap/zap-reports/report.txt";
 var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -46,31 +46,24 @@ function getJwtToken() {
 
 // === Gửi các request giả mạo để kiểm tra BOLA ===
 function sendingRequest(msg, initiator, helper) {
-    var uri = msg.getRequestHeader().getURI().toString();
 
-    if (uri.contains("/api/users/" + CURRENT_ID)) {
-        if (writer === null) {
-            initLog();
+    if (writer === null) {
+        initLog();
+    }
+    if (token == null) {
+        token = getJwtToken();
+        if (!token) {
+            var errTime = formatter.format(new Date());
+            var errLog = "[" + errTime + "] [ERROR] Could not get token";
+            print(errLog);
+            writer.write(errLog + "\n");
+            writer.flush();
+            return;
         }
-
-        if (token == null) {
-            token = getJwtToken();
-            if (!token) {
-                var errTime = formatter.format(new Date());
-                var errLog = "[" + errTime + "] [ERROR] Could not get token";
-                print(errLog);
-                writer.write(errLog + "\n");
-                writer.flush();
-                return;
-            }
-        }
-
-        for (var i = 0; i < TARGET_IDS.length; i++) {
-            var TARGET_ID = TARGET_IDS[i];
-            if (TARGET_ID === CURRENT_ID) continue;
-
-            var newUri = uri.replace("/" + CURRENT_ID, "/" + TARGET_ID);
-            var forgedMsg = new HttpMessage(new URI(newUri, false));
+    }
+    for (var i = 1; i <= 10; i++) {
+            var targetUri = "http://localhost:8080/api/users/" + i;
+            var forgedMsg = new HttpMessage(new URI(targetUri, false));
             forgedMsg.getRequestHeader().setMethod("GET");
             forgedMsg.getRequestHeader().setHeader("Authorization", "Bearer " + token);
 
@@ -79,20 +72,19 @@ function sendingRequest(msg, initiator, helper) {
 
             var status = forgedMsg.getResponseHeader().getStatusCode();
             var timestamp = formatter.format(new Date());
-            var log = "[" + timestamp + "] [*] Tested " + newUri + " => Status: " + status;
+            var log = "[" + timestamp + "] [*] Tested " + targetUri + " => Status: " + status;
 
             print(log);
             writer.write(log + "\n");
 
             if (status === 200) {
-                var vuln = "[" + timestamp + "] [!!] BOLA vulnerability found at: " + newUri;
+                var vuln = "[" + timestamp + "] [!!] BOLA vulnerability found at: " + targetUri;
                 print(vuln);
                 writer.write(vuln + "\n");
             }
 
             writer.flush();
         }
-    }
 }
 
 function responseReceived(msg, initiator, helper) {
