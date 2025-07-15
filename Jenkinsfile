@@ -10,6 +10,15 @@ pipeline {
             }
         }
 
+stage('Start Backend API') {
+            steps {
+                dir('api') {
+                    powershell 'Start-Process -FilePath "java" -ArgumentList "-jar target/api-0.0.1-SNAPSHOT.jar"'
+                }
+                sleep time: 10, unit: 'SECONDS'
+            }
+        }
+
         stage('ZAP Scan (BOLA)') {
             steps {
                 dir('C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1') {
