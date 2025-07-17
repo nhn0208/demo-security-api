@@ -61,27 +61,31 @@ pipeline {
 stage('Check ZAP Alerts') {
     steps {
         script {
-            def json = bat(
+            // Gọi API ZAP để lấy danh sách cảnh báo
+            def batOutput = bat(
                 script: 'curl -s http://localhost:8090/JSON/alert/view/alerts/',
                 returnStdout: true
             ).trim()
 
-            def alerts = new groovy.json.JsonSlurperClassic().parseText(json)
+            // Parse JSON bằng readJSON (an toàn với sandbox)
+            def json = readJSON text: batOutput
 
-            def bolaAlerts = alerts.alerts.findAll { it.name == 'BOLA vulnerability' }
+            // Lọc các cảnh báo BOLA
+            def bolaAlerts = json.alerts.findAll { it.name == 'BOLA vulnerability' }
 
             if (bolaAlerts.size() > 0) {
-                echo "Found ${bolaAlerts.size()} BOLA vulnerability alerts!"
+                echo " Found ${bolaAlerts.size()} BOLA vulnerability alerts!"
                 bolaAlerts.each { a ->
                     echo " ${a.alert} at ${a.url}"
                 }
-                error("Pipeline failed due to detected BOLA vulnerability")
+                error(" Pipeline failed due to detected BOLA vulnerability")
             } else {
-                echo "No BOLA vulnerabilities detected."
+                echo " No BOLA vulnerabilities detected."
             }
         }
     }
 }
+
 
 }
 }
