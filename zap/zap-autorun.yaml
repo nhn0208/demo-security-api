@@ -1,8 +1,0 @@
-env:
-  contexts:
-    - name: dummy
-      urls:
-        - "http://localhost"
-
-  standalone:
-    - "TestBOLA.js"

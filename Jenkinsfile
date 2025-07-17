@@ -26,16 +26,15 @@ pipeline {
         }
 
 
-        stage('Run ZAP with BOLA Script') {
-            steps {
-                dir("${env.ZAP_HOME}") {
-                    bat """
-                        echo Running ZAP with TestBOLA.js script...
-                        zap.bat -cmd -autorun zap-autorun.yaml -addoninstall scripts -config scripts.scriptsAutoLoad=true
-                    """
-                }
-            }
-        }
+        stage('Trigger request to activate script') {
+    steps {
+        bat """
+            curl -X GET http://localhost:8080/api/users/2 ^
+                 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbGllbnQiLCJpYXQiOjE3NTIwNzU0ODcsImV4cCI6MTc1MjA3OTA4N30.pHh85D4foJmPvLk0pxPvPr6RySFU9MyBn4H5GRF7tgo"
+        """
+    }
+}
+
 
         stage('Publish Log Report') {
             steps {
