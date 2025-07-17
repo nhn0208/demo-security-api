@@ -5,7 +5,6 @@ pipeline {
         ZAP_HOME = 'C:\\Program Files\\ZAP\\Zed Attack Proxy'
         BACKEND_JAR = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
         BOLA_SCRIPT = 'zap\\scripts\\TestBOLA.js'
-        BOLA_LOG = 'C:\\Xanh\\tttn\\demo\\zap\\zap-reports\\zap-bola-log.txt'
     }
 
     stages {
@@ -59,41 +58,34 @@ pipeline {
         """
     }
 }
+stage('Check ZAP Alerts') {
+    steps {
+        script {
+            def json = bat(
+                script: 'curl -s http://localhost:8090/JSON/alert/view/alerts/',
+                returnStdout: true
+            ).trim()
 
-        stage('Publish Log Report') {
-            steps {
-                script {
-                    def exists = fileExists("${BOLA_LOG}")
-                    if (exists) {
-                        echo "ZAP BOLA log found:"
-                        def content = readFile("${BOLA_LOG}")
-                        echo content
-                    } else {
-                        echo "Log file not found: ${BOLA_LOG}"
-                    }
+            def alerts = new groovy.json.JsonSlurperClassic().parseText(json)
+
+            def bolaAlerts = alerts.alerts.findAll { it.name == 'BOLA vulnerability' }
+
+            if (bolaAlerts.size() > 0) {
+                echo "Found ${bolaAlerts.size()} BOLA vulnerability alerts!"
+                bolaAlerts.each { a ->
+                    echo " ${a.alert} at ${a.url}"
                 }
-            }
-        }
-
-        stage('Publish ZAP Report') {
-            steps {
-                publishHTML(target: [
-                    reportDir: "zap\\zap-reports",
-                    reportFiles: "zap-bola-log.txt",
-                    reportName: 'ZAP BOLA Security Report',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
+                error("Pipeline failed due to detected BOLA vulnerability")
+            } else {
+                echo "No BOLA vulnerabilities detected."
             }
         }
     }
+}
 
+   
     post {
         always {
-            archiveArtifacts artifacts: "${BOLA_LOG}", fingerprint: true
-
-            // Optional: tắt ZAP sau khi xong
-            bat 'curl http://127.0.0.1:8090/JSON/core/action/shutdown/'
-        }
+                    }
     }
 }

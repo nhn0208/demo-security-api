@@ -61,12 +61,21 @@ function sendingRequest(msg, initiator, helper) {
             sender.sendAndReceive(forgedMsg, true);
 
             var status = forgedMsg.getResponseHeader().getStatusCode();
-            var log = "[" + formatter.format(new Date()) + "] Tested " + newUri + " => Status: " + status;
+            if (status === 200 && id !== CURRENT_ID) {
+            helper.raiseAlert(
+                2,                     // risk: 0-Informational, 1-Low, 2-Medium, 3-High
+                2,                     // confidence: 0-Low, 1-Medium, 2-High, 3-Confirmed
+                "BOLA vulnerability",  // alert name
+                "User enumeration detected via ID tampering", // description
+                newUri,                // URI
+                "", "", "",            // param, attack, otherInfo
+                "Fix object-level access controls.", // solution
+                "Consider rate limiting and access control.", // reference
+                0, 0,                  // CWE ID, WASC ID
+                msg                   // original message (for context in alert tab)
+            );
+        }
 
-            if (status === 200) {
-                var vuln = "[!!] BOLA vulnerability found at: " + newUri;
-                print(vuln + "\n");
-            }
         }
     }
 }
