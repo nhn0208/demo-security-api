@@ -24,28 +24,11 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
-stage('Start ZAP Proxy') {
-    steps {
-        dir("${env.ZAP_HOME}") {
-            bat """
-                start zap.bat -cmd -daemon -port 8090 ^
-                  -addoninstall scripts ^
-                  -config scripts.scriptsAutoLoad=true
-            """
-        }
-    }
-}
-stage('Check All Listening Ports') {
-    steps {
-        bat 'netstat -ano | findstr LISTENING'
-    }
-}
-
 
 stage('Trigger ZAP Scan') {
     steps {
         bat """
-            curl -x http://localhost:8090 ^
+            curl -x http://localhost:8000 ^
                  -X GET http://localhost:8080/api/users/2 ^
                  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbGllbnQiLCJpYXQiOjE3NTIwNzU0ODcsImV4cCI6MTc1MjA3OTA4N30.pHh85D4foJmPvLk0pxPvPr6RySFU9MyBn4H5GRF7tgo"
         """
