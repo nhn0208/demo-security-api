@@ -38,17 +38,23 @@ pipeline {
             }
         }
 
-        stage('Check ZAP Proxy') {
+        stage('Check PORT') {
             steps {
-                bat 'netstat -ano | findstr :8090 || echo ZAP proxy not listening!'
+                bat '''
+    echo === Checking if ZAP (port 8090) is running ===
+    netstat -ano | findstr :8090 || echo ZAP proxy not listening on port 8090!
+
+    echo === Checking if Backend API (port 8080) is running ===
+    netstat -ano | findstr :8080 || echo Backend API not listening on port 8080!
+'''
             }
         }
 
         stage('Trigger ZAP Scan') {
     steps {
         bat """
-            curl -x http://localhost:8090 ^
-                 -X GET http://localhost:8080/api/users/2 ^
+            curl -x http://127.0.0.1:8090 ^
+                 -X GET http://127.0.0.1:8080/api/users/2 ^
                  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbGllbnQiLCJpYXQiOjE3NTIwNzU0ODcsImV4cCI6MTc1MjA3OTA4N30.pHh85D4foJmPvLk0pxPvPr6RySFU9MyBn4H5GRF7tgo"
         """
     }

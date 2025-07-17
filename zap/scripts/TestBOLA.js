@@ -15,7 +15,7 @@ var Date = Java.type("java.util.Date");
 // === Biến toàn cục ===
 var CURRENT_ID = 2;
 var TARGET_IDS = [1,2,3,4,5,6,7,8,9,10];
-var loginUrl = "http://localhost:8080/api/auth/login";
+var loginUrl = "http://127.0.0.1:8080/api/auth/login";
 var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
