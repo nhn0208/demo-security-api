@@ -27,6 +27,14 @@ var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 // === Khởi tạo log
 function initLog() {
+    // Tạo thư mục nếu chưa có
+    var File = Java.type("java.io.File");
+    var logPath = "zap/zap-reports";
+    var logDir = new File(logPath);
+    if (!logDir.exists()) {
+        logDir.mkdirs();
+    }
+
     writer = new BufferedWriter(new FileWriter(logFile, true));
     writer.write("\n=== BOLA Scan Log - " + formatter.format(new Date()) + " ===\n");
     writer.flush();
@@ -88,6 +96,7 @@ function sendingRequest(msg, initiator, helper) {
             }
             writer.flush();
         }
+        writer.close();
     }
 }
 
