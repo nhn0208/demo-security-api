@@ -24,12 +24,24 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
+
+stage('Install ZAP Add-ons') {
+    steps {
+        dir("${env.ZAP_HOME}") {
+            bat '''
+                zap.bat -cmd -addoninstall graaljs
+                zap.bat -cmd -addoninstall scripts
+            '''
+        }
+    }
+}
+
 stage('Start ZAP Proxy') {
     steps {
         dir("${env.ZAP_HOME}") {
-            powershell """
-                 Start-Process -FilePath "zap.bat" -ArgumentList "-daemon -port 8090 -addoninstall scripts -config scripts.scriptsAutoLoad=true" -WindowStyle Hidden
-            """
+            bat '''
+                powershell -Command "Start-Process 'zap.bat' -ArgumentList '-daemon -port 8090 -config scripts.scriptsAutoLoad=true' -WindowStyle Hidden"
+            '''
         }
         sleep time: 30, unit: 'SECONDS'
     }
