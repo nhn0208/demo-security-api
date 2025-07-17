@@ -20,7 +20,8 @@ var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
 // === Log file
-var logFile = Java.type("java.lang.System").getProperty("user.dir") + "/zap/zap-reports/zap-bola-log.txt";
+//var logFile = Java.type("java.lang.System").getProperty("user.dir") + "/zap/zap-reports/zap-bola-log.txt";
+var logFile ="C:/Xanh/tttn/demo/zap/zap-reports/zap-bola-log.txt";
 var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -51,7 +52,7 @@ function getJwtToken() {
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
     print("[DEBUG] Triggered sendingRequest for URI: " + uri);
-    if (uri.contains("/api/users/")) {
+    if (uri.contains("/api/users/"+ CURRENT_ID)) {
         if (writer === null) {
             initLog();
         }

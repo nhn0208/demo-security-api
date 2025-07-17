@@ -5,7 +5,7 @@ pipeline {
         ZAP_HOME = 'C:\\Program Files\\ZAP\\Zed Attack Proxy'
         BACKEND_JAR = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
         BOLA_SCRIPT = 'zap\\scripts\\TestBOLA.js'
-        BOLA_LOG = 'zap\\zap-reports\\zap-bola-log.txt'
+        BOLA_LOG = 'C:\\Xanh\\tttn\\demo\\zap\\zap-reports\\zap-bola-log.txt'
     }
 
     stages {
@@ -63,7 +63,7 @@ pipeline {
                         def content = readFile("${BOLA_LOG}")
                         echo content
                     } else {
-                        echo "⚠️ Log file not found: ${BOLA_LOG}"
+                        echo "Log file not found: ${BOLA_LOG}"
                     }
                 }
             }
