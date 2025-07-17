@@ -1,3 +1,7 @@
+// Script type: httpsender
+// Target: any
+// Enabled: true
+
 // Java class mapping
 var HttpSender = Java.type("org.parosproxy.paros.network.HttpSender");
 var HttpMessage = Java.type("org.parosproxy.paros.network.HttpMessage");
