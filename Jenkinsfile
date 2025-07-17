@@ -24,7 +24,6 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
-
 stage('Start ZAP Proxy') {
     steps {
         dir("${env.ZAP_HOME}") {
@@ -34,6 +33,11 @@ stage('Start ZAP Proxy') {
                   -config scripts.scriptsAutoLoad=true
             """
         }
+    }
+}
+stage('Check All Listening Ports') {
+    steps {
+        bat 'netstat -ano | findstr LISTENING'
     }
 }
 
