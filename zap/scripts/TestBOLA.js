@@ -7,8 +7,6 @@ var HttpSender = Java.type("org.parosproxy.paros.network.HttpSender");
 var HttpMessage = Java.type("org.parosproxy.paros.network.HttpMessage");
 var URI = Java.type("org.apache.commons.httpclient.URI");
 var HttpHeader = Java.type("org.parosproxy.paros.network.HttpHeader");
-var FileWriter = Java.type("java.io.FileWriter");
-var BufferedWriter = Java.type("java.io.BufferedWriter");
 var SimpleDateFormat = Java.type("java.text.SimpleDateFormat");
 var Date = Java.type("java.util.Date");
 
@@ -19,26 +17,7 @@ var loginUrl = "http://127.0.0.1:8080/api/auth/login";
 var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
-// === Log file
-var logFile = "zap/zap-reports/zap-bola-log.txt";
-//var logFile ="C:/Xanh/tttn/demo/zap/zap-reports/zap-bola-log.txt";
-var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-// === Khởi tạo log
-function initLog() {
-    // Tạo thư mục nếu chưa có
-    var File = Java.type("java.io.File");
-    var logPath = "zap/zap-reports";
-    var logDir = new File(logPath);
-    if (!logDir.exists()) {
-        logDir.mkdirs();
-    }
-
-    writer = new BufferedWriter(new FileWriter(logFile, true));
-    writer.write("\n=== BOLA Scan Log - " + formatter.format(new Date()) + " ===\n");
-    writer.flush();
-}
 
 // === Gọi API login để lấy JWT
 function getJwtToken() {
@@ -59,17 +38,12 @@ function getJwtToken() {
 // === Hàm xử lý request gốc
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
-    print("[DEBUG] Triggered sendingRequest for URI: " + uri);
     if (uri.contains("/api/users/"+ CURRENT_ID)) {
-        if (writer === null) {
-            initLog();
-        }
-
         if (token == null) {
             token = getJwtToken();
             if (!token) {
                 var error = "[" + formatter.format(new Date()) + "] [ERROR] Failed to get token";
-                print(error); writer.write(error + "\n"); writer.flush();
+                print(error);
                 return;
             }
         }
@@ -89,14 +63,12 @@ function sendingRequest(msg, initiator, helper) {
             var status = forgedMsg.getResponseHeader().getStatusCode();
             var log = "[" + formatter.format(new Date()) + "] Tested " + newUri + " => Status: " + status;
 
-            writer.write(log + "\n");
             if (status === 200) {
                 var vuln = "[!!] BOLA vulnerability found at: " + newUri;
-                writer.write(vuln + "\n");
+                print(vuln + "\n");
             }
             writer.flush();
         }
-        writer.close();
     }
 }
 
