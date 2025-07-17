@@ -38,7 +38,7 @@ function getJwtToken() {
 // === Hàm xử lý request gốc
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
-    if (uri.contains("/api/users/"+ CURRENT_ID)) {
+    if (uri.contains("/api/users/")) {
         if (token == null) {
             token = getJwtToken();
             if (!token) {
@@ -52,7 +52,7 @@ function sendingRequest(msg, initiator, helper) {
             var id = TARGET_IDS[i];
             if (id === CURRENT_ID) continue;
 
-            var newUri = uri.replace("/" + CURRENT_ID, "/" + id);
+            var newUri = uri.replace(/\/\d+$/, "/" + id);
             var forgedMsg = new HttpMessage(new URI(newUri, false));
             forgedMsg.getRequestHeader().setMethod("GET");
             forgedMsg.getRequestHeader().setHeader("Authorization", "Bearer " + token);
@@ -67,7 +67,6 @@ function sendingRequest(msg, initiator, helper) {
                 var vuln = "[!!] BOLA vulnerability found at: " + newUri;
                 print(vuln + "\n");
             }
-            writer.flush();
         }
     }
 }
