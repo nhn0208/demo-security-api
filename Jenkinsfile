@@ -24,14 +24,19 @@ pipeline {
                 sleep time: 10, unit: 'SECONDS'
             }
         }
-stage('Start ZAP Proxy (daemon)') {
-            steps {
-                dir("${env.ZAP_HOME}") {
-                    bat 'zap.bat -daemon -port 8090 -addoninstall scripts -config scripts.scriptsAutoLoad=true'
-                }
-                sleep time: 15, unit: 'SECONDS'
-            }
+stage('Start ZAP Proxy') {
+    steps {
+        dir("${env.ZAP_HOME}") {
+            bat '''
+                powershell Start-Process -FilePath "zap.bat" `
+                  -ArgumentList "-daemon -port 8090 -addoninstall scripts -config scripts.scriptsAutoLoad=true" `
+                  -WindowStyle Hidden
+            '''
         }
+        sleep time: 10, unit: 'SECONDS'
+    }
+}
+
 
         stage('Check ZAP Proxy') {
             steps {
