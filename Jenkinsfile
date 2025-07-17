@@ -93,7 +93,7 @@ pipeline {
             archiveArtifacts artifacts: "${BOLA_LOG}", fingerprint: true
 
             // Optional: tắt ZAP sau khi xong
-            bat 'curl http://localhost:8090/JSON/core/action/shutdown/'
+            bat 'curl http://127.0.0.1:8090/JSON/core/action/shutdown/'
         }
     }
 }
