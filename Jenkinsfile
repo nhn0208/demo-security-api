@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        ZAP_HOME = 'C:\\Xanh\\tttn\\ZAP\\ZAP_2.16.1_Crossplatform\\ZAP_2.16.1'
+        ZAP_HOME = 'C:\\Program Files\\ZAP\\Zed Attack Proxy'
         BACKEND_JAR = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
+        BOLA_SCRIPT = 'zap\\scripts\\TestBOLA.js'
         BOLA_LOG = 'zap\\zap-reports\\zap-bola-log.txt'
     }
 
@@ -25,28 +26,17 @@ pipeline {
             }
         }
 
-stage('Install ZAP Add-ons') {
-    steps {
-        dir("${env.ZAP_HOME}") {
-            bat '''
-                zap.bat -cmd -addoninstall graaljs
-                zap.bat -cmd -addoninstall scripts
-            '''
-        }
-    }
-}
 
-stage('Start ZAP Proxy') {
-    steps {
-        dir("${env.ZAP_HOME}") {
-            bat '''
-                powershell -Command "Start-Process 'zap.bat' -ArgumentList '-daemon -port 8090 -config scripts.scriptsAutoLoad=true' -WindowStyle Hidden"
-            '''
+        stage('Start ZAP Proxy') {
+            steps {
+                dir("${env.ZAP_HOME}") {
+                    bat '''
+                        powershell -Command "Start-Process 'zap.bat' -ArgumentList '-daemon -port 8090 -config api.disablekey=true -config scripts.scriptsAutoLoad=true' -WindowStyle Hidden"
+                    '''
+                }
+                sleep time: 30, unit: 'SECONDS'
+            }
         }
-        sleep time: 30, unit: 'SECONDS'
-    }
-}
-
 
         stage('Check ZAP Proxy') {
             steps {
@@ -54,8 +44,7 @@ stage('Start ZAP Proxy') {
             }
         }
 
-
-stage('Trigger ZAP Scan') {
+        stage('Trigger ZAP Scan') {
     steps {
         bat """
             curl -x http://localhost:8090 ^
@@ -65,23 +54,22 @@ stage('Trigger ZAP Scan') {
     }
 }
 
-
         stage('Publish Log Report') {
             steps {
                 script {
                     def exists = fileExists("${BOLA_LOG}")
                     if (exists) {
-                        echo "ZAP log found:"
+                        echo "ZAP BOLA log found:"
                         def content = readFile("${BOLA_LOG}")
                         echo content
                     } else {
-                        echo "Log file not found: ${BOLA_LOG}"
+                        echo "⚠️ Log file not found: ${BOLA_LOG}"
                     }
                 }
             }
         }
 
-	stage('Publish ZAP Report') {
+        stage('Publish ZAP Report') {
             steps {
                 publishHTML(target: [
                     reportDir: "zap\\zap-reports",
@@ -92,12 +80,14 @@ stage('Trigger ZAP Scan') {
                 ])
             }
         }
-
     }
 
     post {
         always {
             archiveArtifacts artifacts: "${BOLA_LOG}", fingerprint: true
+
+            // Optional: tắt ZAP sau khi xong
+            bat 'curl http://localhost:8090/JSON/core/action/shutdown/'
         }
     }
 }
