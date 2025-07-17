@@ -49,11 +49,6 @@ pipeline {
 '''
             }
         }
-stage('Clean Old Log File') {
-    steps {
-        bat 'del /f /q zap\\zap-reports\\zap-bola-log.txt 2>nul'
-    }
-}
 
         stage('Trigger ZAP Scan') {
     steps {
