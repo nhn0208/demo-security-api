@@ -16,11 +16,6 @@ pipeline {
                 }
             }
         }
-stage('Prepare Log Directory') {
-    steps {
-        bat 'mkdir zap\\zap-reports'
-    }
-}
 
         stage('Start Backend API') {
             steps {
