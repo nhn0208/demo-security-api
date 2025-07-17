@@ -25,9 +25,15 @@ pipeline {
             }
         }
 
-stage('Check All Listening Ports') {
+stage('Start ZAP Proxy') {
     steps {
-        bat 'netstat -ano | findstr LISTENING'
+        dir("${env.ZAP_HOME}") {
+            bat """
+                start zap.bat -cmd -daemon -port 8090 ^
+                  -addoninstall scripts ^
+                  -config scripts.scriptsAutoLoad=true
+            """
+        }
     }
 }
 
