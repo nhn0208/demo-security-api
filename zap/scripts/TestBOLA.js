@@ -46,8 +46,8 @@ function getJwtToken() {
 // === Hàm xử lý request gốc
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
-
-    if (uri.contains("/api/users/" + CURRENT_ID)) {
+    print("[DEBUG] Triggered sendingRequest for URI: " + uri);
+    if (uri.contains("/api/users/")) {
         if (writer === null) {
             initLog();
         }
