@@ -27,9 +27,9 @@ pipeline {
 stage('Start ZAP Proxy (daemon)') {
             steps {
                 dir("${env.ZAP_HOME}") {
-                    bat 'start zap.bat -daemon -port 8090 -addoninstall scripts -config scripts.scriptsAutoLoad=true'
+                    bat 'zap.bat -daemon -port 8090 -addoninstall scripts -config scripts.scriptsAutoLoad=true'
                 }
-                sleep time: 5, unit: 'SECONDS'
+                sleep time: 15, unit: 'SECONDS'
             }
         }
 
