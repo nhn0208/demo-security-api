@@ -52,7 +52,7 @@ function getJwtToken() {
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
     print("[DEBUG] Triggered sendingRequest for URI: " + uri);
-    if (uri.contains("/api/users/"+ CURRENT_ID)) {
+    if (uri.contains("/api/users/")) {
         if (writer === null) {
             initLog();
         }
