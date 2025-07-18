@@ -7,6 +7,8 @@ var HttpSender = Java.type("org.parosproxy.paros.network.HttpSender");
 var HttpMessage = Java.type("org.parosproxy.paros.network.HttpMessage");
 var URI = Java.type("org.apache.commons.httpclient.URI");
 var HttpHeader = Java.type("org.parosproxy.paros.network.HttpHeader");
+var FileWriter = Java.type("java.io.FileWriter");
+var BufferedWriter = Java.type("java.io.BufferedWriter");
 var SimpleDateFormat = Java.type("java.text.SimpleDateFormat");
 var Date = Java.type("java.util.Date");
 
@@ -17,7 +19,18 @@ var loginUrl = "http://127.0.0.1:8080/api/auth/login";
 var loginBody = '{"username":"client","password":"client123"}';
 var token = null;
 
+// === Log file
+//var logFile = "C:/Xanh/tttnzap/zap-reports/zap-bola-log.txt";
+var logFile ="C:/Xanh/tttn/demo/zap/zap-reports/zap-bola-log.txt";
+var writer = null;
 var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+// === Khởi tạo log
+function initLog() {
+    writer = new BufferedWriter(new FileWriter(logFile, true));
+    writer.write("\n=== BOLA Scan Log - " + formatter.format(new Date()) + " ===\n");
+    writer.flush();
+}
 
 // === Gọi API login để lấy JWT
 function getJwtToken() {
@@ -38,12 +51,17 @@ function getJwtToken() {
 // === Hàm xử lý request gốc
 function sendingRequest(msg, initiator, helper) {
     var uri = msg.getRequestHeader().getURI().toString();
-    if (uri.contains("/api/users/")) {
+    print("[DEBUG] Triggered sendingRequest for URI: " + uri);
+    if (uri.contains("/api/users/"+ CURRENT_ID)) {
+        if (writer === null) {
+            initLog();
+        }
+
         if (token == null) {
             token = getJwtToken();
             if (!token) {
                 var error = "[" + formatter.format(new Date()) + "] [ERROR] Failed to get token";
-                print(error);
+                print(error); writer.write(error + "\n"); writer.flush();
                 return;
             }
         }
@@ -52,7 +70,7 @@ function sendingRequest(msg, initiator, helper) {
             var id = TARGET_IDS[i];
             if (id === CURRENT_ID) continue;
 
-            var newUri = uri.replace(/\/\d+$/, "/" + id);
+            var newUri = uri.replace("/" + CURRENT_ID, "/" + id);
             var forgedMsg = new HttpMessage(new URI(newUri, false));
             forgedMsg.getRequestHeader().setMethod("GET");
             forgedMsg.getRequestHeader().setHeader("Authorization", "Bearer " + token);
@@ -61,25 +79,14 @@ function sendingRequest(msg, initiator, helper) {
             sender.sendAndReceive(forgedMsg, true);
 
             var status = forgedMsg.getResponseHeader().getStatusCode();
-            if (status === 200 && id !== CURRENT_ID) {
-            helper.raiseAlert(
-                2,                     // risk: 0-Informational, 1-Low, 2-Medium, 3-High
-                2,                     // confidence: 0-Low, 1-Medium, 2-High, 3-Confirmed
-                "BOLA vulnerability",  // alert name
-                "User enumeration detected via ID tampering", // description
-                newUri,                // URI
-                "", "", "",            // param, attack, otherInfo
-                "Fix object-level access controls.", // solution
-                "Consider rate limiting and access control.", // reference
-                0, 0,                  // CWE ID, WASC ID
-                msg                   // original message (for context in alert tab)
-            );
-        }
+            var log = "[" + formatter.format(new Date()) + "] Tested " + newUri + " => Status: " + status;
 
+            writer.write(log + "\n");
+            if (status === 200) {
+                var vuln = "[!!] BOLA vulnerability found at: " + newUri;
+                writer.write(vuln + "\n");
+            }
+            writer.flush();
         }
     }
-}
-
-function responseReceived(msg, initiator, helper) {
-    // Không cần xử lý phản hồi
 }

@@ -4,7 +4,7 @@ pipeline {
     environment {
         ZAP_HOME = 'C:\\Program Files\\ZAP\\Zed Attack Proxy'
         BACKEND_JAR = 'api\\target\\api-0.0.1-SNAPSHOT.jar'
-        BOLA_SCRIPT = 'zap\\scripts\\TestBOLA.js'
+	ZAP_LOG_DIR = "${env.WORKSPACE}\\zap\\zap-reports"
     }
 
     stages {
@@ -33,7 +33,7 @@ pipeline {
                         powershell -Command "Start-Process 'zap.bat' -ArgumentList '-daemon -port 8090 -config api.disablekey=true -config scripts.scriptsAutoLoad=true' -WindowStyle Hidden"
                     '''
                 }
-                sleep time: 30, unit: 'SECONDS'
+                sleep time: 15, unit: 'SECONDS'
             }
         }
 
@@ -58,34 +58,43 @@ pipeline {
         """
     }
 }
-stage('Check ZAP Alerts') {
+stage('Copy log vào workspace') {
+    steps {
+        bat 'copy /Y "C:\\Xanh\\tttn\\demo\\zap\\zap-reports\\zap-bola-log.txt" "zap\\zap-reports\\zap-bola-log.txt"'
+    }
+}
+
+stage('Check BOLA Log File') {
     steps {
         script {
-            // Gọi API ZAP để lấy danh sách cảnh báo
-            def batOutput = bat(
-                script: 'curl -s http://localhost:8090/JSON/alert/view/alerts/',
-                returnStdout: true
-            ).trim()
+            def logPath = "zap/zap-reports/zap-bola-log.txt"
+            def exists = fileExists(logPath)
 
-            // Parse JSON bằng readJSON (an toàn với sandbox)
-            def json = readJSON text: batOutput
+            if (!exists) {
+                error(" Log file not found: ${logPath}")
+            }
 
-            // Lọc các cảnh báo BOLA
-            def bolaAlerts = json.alerts.findAll { it.name == 'BOLA vulnerability' }
+            def content = readFile(logPath)
+            echo " BOLA Log:\n" + content
 
-            if (bolaAlerts.size() > 0) {
-                echo " Found ${bolaAlerts.size()} BOLA vulnerability alerts!"
-                bolaAlerts.each { a ->
-                    echo " ${a.alert} at ${a.url}"
-                }
-                error(" Pipeline failed due to detected BOLA vulnerability")
+            if (content.contains("BOLA vulnerability")) {
+                error(" BOLA vulnerability detected! Failing pipeline.")
             } else {
-                echo " No BOLA vulnerabilities detected."
+                echo " No BOLA vulnerabilities detected in log."
             }
         }
     }
 }
 
+stage('Publish ZAP Report') {
+    steps {
+        publishHTML(target: [
+            reportDir: "zap\\zap-reports",
+            reportFiles: "zap-bola-log.txt",
+            reportName: 'ZAP BOLA Report'
+        ])
+    }
+}
 
 }
 }
