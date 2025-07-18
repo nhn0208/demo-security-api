@@ -86,8 +86,10 @@ stage('Check BOLA Log File') {
     }
 }
 
-stage('Publish ZAP Report') {
-    steps {
+
+}
+	post {
+    always {
         publishHTML(target: [
             reportDir: "zap\\zap-reports",
             reportFiles: "zap-bola-log.txt",
@@ -96,5 +98,4 @@ stage('Publish ZAP Report') {
     }
 }
 
-}
 }

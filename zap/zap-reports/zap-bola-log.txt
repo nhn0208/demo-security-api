@@ -1,0 +1,20 @@
+
+=== BOLA Scan Log - 2025-07-18 20:40:34 ===
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/1 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/1
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/3 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/3
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/4 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/4
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/5 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/5
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/6 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/6
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/7 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/7
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/8 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/8
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/9 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/9
+[2025-07-18 20:40:35] Tested http://127.0.0.1:8080/api/users/10 => Status: 200
+[!!] BOLA vulnerability found at: http://127.0.0.1:8080/api/users/10
